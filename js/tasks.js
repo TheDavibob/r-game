@@ -42,7 +42,8 @@ async function fetchText(path, optional = false) {
     if (optional) return '';
     throw new Error(`Could not load tasks/${path} (${res.status})`);
   }
-  return res.text();
+  // Task files saved on Windows may have CRLF line endings, which R can't parse.
+  return (await res.text()).replace(/\r\n?/g, '\n');
 }
 
 // Returns [{ id, title, tasks: [taskMeta, ...] }, ...]

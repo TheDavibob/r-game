@@ -1,0 +1,4 @@
+# Keep Unix (LF) line endings on checkout, even on Windows. R's parser
+# rejects the stray carriage returns that CRLF line endings leave in the code.
+* text=auto eol=lf
+*.bat text eol=crlf

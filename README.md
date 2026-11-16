@@ -9,23 +9,34 @@ server), and it works fully offline once set up.
 
 ## Quick start
 
-```bash
-python setup_offline.py
-```
+You need Python 3 and a modern browser (developed and tested in Chrome/Edge).
+R itself does not need to be installed. After cloning, from the repo folder:
 
-```bash
-python serve.py
-```
+1. Download webR and the R packages, once (needs internet, ~85 MB, under a
+   minute on a fast connection):
 
-`setup_offline.py` downloads webR (~47 MB) into `vendor/webr/` and the R packages
-your tasks need (currently ggplot2, dplyr, tidyr, palmerpenguins and their
-dependencies, ~37 MB) into `vendor/repo/`. Run it
-again whenever a task starts using a new package. `serve.py` starts
-`http://localhost:8080` and opens your browser. On Windows you can double-click
-`start-game.bat` instead.
+   ```bash
+   python setup_offline.py
+   ```
+
+2. Start the game (no internet needed from here on):
+
+   ```bash
+   python serve.py
+   ```
+
+   This serves `http://localhost:8080` and opens your browser; press Ctrl+C to
+   stop. On Windows you can double-click `start-game.bat` instead. On macOS or
+   Linux use `python3` if `python` isn't found.
+
+`setup_offline.py` puts webR (~47 MB) into `vendor/webr/` and the packages the
+tasks list (currently ggplot2, dplyr, tidyr, palmerpenguins and their
+dependencies, ~37 MB) into `vendor/repo/`. Run it again whenever a task starts
+using a new package. `vendor/` is not committed to git.
 
 If `vendor/` is missing, the game still works online by loading webR from its
-CDN.
+CDN. Progress is saved in the browser per address, so if port 8080 is busy and
+the server picks another port, you start with fresh progress there.
 
 ## How it fits together
 

@@ -61,7 +61,10 @@ export class REngine {
     onStatus('Starting R…');
     await this.webR.init();
 
-    const grader = await fetch(GRADER_URL, { cache: 'no-cache' }).then((r) => r.text());
+    // Normalise Windows (CRLF) line endings: R's parser rejects stray \r.
+    const grader = await fetch(GRADER_URL, { cache: 'no-cache' })
+      .then((r) => r.text())
+      .then((s) => s.replace(/\r\n?/g, '\n'));
     await this.webR.evalRVoid(grader);
     this._installed.clear();
     this.ready = true;
