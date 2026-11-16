@@ -1,0 +1,22 @@
+{
+  "title": "The penguin palette",
+  "type": "plot",
+  "difficulty": 2,
+  "points": 20,
+  "packages": [
+    "ggplot2",
+    "palmerpenguins"
+  ],
+  "labels": [
+    "title",
+    "x",
+    "y",
+    "colour"
+  ],
+  "hints": [
+    "To choose colours yourself, use a manual scale: `scale_colour_manual(values = ...)`.",
+    "The values are used in the order of the species levels: Adelie, Chinstrap, Gentoo.",
+    "The legend title can be set with `labs(colour = \"Species\")` or the scale's `name` argument."
+  ],
+  "starter": "# ggplot2 is loaded and `penguins` is ready to use\n"
+}

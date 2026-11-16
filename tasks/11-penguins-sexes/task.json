@@ -1,0 +1,17 @@
+{
+  "title": "Males vs. females",
+  "type": "plot",
+  "difficulty": 3,
+  "points": 30,
+  "packages": [
+    "ggplot2",
+    "palmerpenguins",
+    "dplyr"
+  ],
+  "hints": [
+    "`is.na(penguins$sex)` is TRUE for the unknowns; `!` flips it.",
+    "Base R: `subset(penguins, !is.na(sex))`. dplyr: `filter(penguins, !is.na(sex))`.",
+    "One panel per species: `facet_wrap(~species)`."
+  ],
+  "starter": "# ggplot2 is loaded and `penguins` is ready to use\n"
+}

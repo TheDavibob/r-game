@@ -1,0 +1,16 @@
+{
+  "title": "Simpson's paradox",
+  "type": "plot",
+  "difficulty": 3,
+  "points": 30,
+  "packages": [
+    "ggplot2",
+    "palmerpenguins"
+  ],
+  "hints": [
+    "Straight-line fits: `geom_smooth(method = \"lm\", se = FALSE)`.",
+    "Aesthetics inside `ggplot(aes(...))` apply to *every* layer. Mappings inside a single geom apply only to that layer.",
+    "The overall line must not be split by species, so don't give it a colour *mapping*. Set `colour = \"black\"` outside `aes()`."
+  ],
+  "starter": "# ggplot2 is loaded and `penguins` is ready to use\n"
+}

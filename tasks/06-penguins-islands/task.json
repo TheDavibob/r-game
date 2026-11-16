@@ -1,0 +1,16 @@
+{
+  "title": "Who lives where?",
+  "type": "plot",
+  "difficulty": 2,
+  "points": 20,
+  "packages": [
+    "ggplot2",
+    "palmerpenguins"
+  ],
+  "hints": [
+    "For bars, `fill` sets the inside colour (`colour` only sets the outline).",
+    "Add a title with `labs(title = \"...\")`.",
+    "`ggplot(penguins, aes(x = island, fill = species)) + geom_bar()`"
+  ],
+  "starter": "# ggplot2 is loaded and `penguins` is ready to use\n"
+}

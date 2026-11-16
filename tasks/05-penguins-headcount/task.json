@@ -1,0 +1,15 @@
+{
+  "title": "Penguin headcount",
+  "type": "plot",
+  "difficulty": 1,
+  "points": 10,
+  "packages": [
+    "ggplot2",
+    "palmerpenguins"
+  ],
+  "hints": [
+    "`geom_bar()` counts the rows for you, so you only need an x aesthetic.",
+    "`ggplot(penguins, aes(x = species)) + geom_bar()`"
+  ],
+  "starter": "# ggplot2 is loaded and `penguins` is ready to use\n"
+}

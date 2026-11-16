@@ -1,0 +1,16 @@
+{
+  "title": "Flipper distributions",
+  "type": "plot",
+  "difficulty": 2,
+  "points": 20,
+  "packages": [
+    "ggplot2",
+    "palmerpenguins"
+  ],
+  "hints": [
+    "`geom_histogram()` takes a `binwidth` argument.",
+    "Small multiples are made with facets: `facet_wrap(~species)`.",
+    "`facet_wrap()` has an `ncol` argument to control the number of columns."
+  ],
+  "starter": "# ggplot2 is loaded and `penguins` is ready to use\n"
+}

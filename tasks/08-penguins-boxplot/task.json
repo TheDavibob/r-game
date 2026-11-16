@@ -1,0 +1,15 @@
+{
+  "title": "Heavyweight champions",
+  "type": "plot",
+  "difficulty": 2,
+  "points": 20,
+  "packages": [
+    "ggplot2",
+    "palmerpenguins"
+  ],
+  "hints": [
+    "Box plots need a grouping variable on x and a numeric variable on y.",
+    "`labs()` can set `title`, `x` and `y` in one call."
+  ],
+  "starter": "# ggplot2 is loaded and `penguins` is ready to use\n"
+}

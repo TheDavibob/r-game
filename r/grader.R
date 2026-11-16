@@ -280,6 +280,8 @@ rgame_compare_output <- function(user_output, expected_output) {
 
 rgame_geom_name <- function(layer) {
   cls <- class(layer$geom)[1]
+  # geom_histogram() is stored as a bar geom with a binning stat.
+  if (cls == "GeomBar" && class(layer$stat)[1] == "StatBin") return("geom_histogram")
   tolower(gsub("([a-z])([A-Z])", "\\1_\\2", cls))
 }
 
@@ -290,6 +292,14 @@ rgame_labels <- function(p) {
   } else {
     p$labels
   }
+  # A name given to a scale, e.g. scale_colour_manual(name = "Species"), is
+  # what gets drawn, so it counts as that aesthetic's label.
+  scales <- tryCatch(p$scales$scales, error = function(e) list())
+  for (sc in scales) {
+    nm <- tryCatch(sc$name, error = function(e) NULL)
+    if (is.null(nm) || inherits(nm, "waiver")) next
+    for (a in sc$aesthetics) labs[[a]] <- nm
+  }
   lapply(labs, function(v) {
     if (is.null(v)) return(NA_character_)
     if (is.character(v)) return(paste(v, collapse = " "))
@@ -299,7 +309,8 @@ rgame_labels <- function(p) {
 
 rgame_aes_names <- c(
   x = "x positions", y = "y positions", xmin = "xmin values", xmax = "xmax values",
-  ymin = "ymin values", ymax = "ymax values", xend = "xend values", yend = "yend values",
+  ymin = "ymin values", ymax = "ymax values",
+  lower = "lower quartiles", middle = "medians", upper = "upper quartiles", xend = "xend values", yend = "yend values",
   xintercept = "xintercept values", yintercept = "yintercept values",
   colour = "colours", fill = "fill colours", size = "point sizes", shape = "shapes",
   alpha = "transparency (alpha)", linetype = "line types", linewidth = "line widths",
@@ -308,12 +319,36 @@ rgame_aes_names <- c(
 
 rgame_compare_layer <- function(u, e, i, geom, tolerance = 1e-6) {
   where <- sprintf("Layer %d (%s)", i, geom)
+  # Rows with a missing x or y are never drawn, so ignore them. This way a
+  # player who removed NAs first (na.omit, drop_na, ...) still matches.
+  drop_na_pos <- function(d) {
+    pos <- intersect(c("x", "y"), names(d))
+    if (!length(pos)) return(d)
+    keep <- stats::complete.cases(as.data.frame(lapply(d[pos], as.numeric)))
+    d[keep, , drop = FALSE]
+  }
+  u <- drop_na_pos(u)
+  e <- drop_na_pos(e)
   cols <- intersect(names(rgame_aes_names), names(e))
   missing <- setdiff(cols, names(u))
+  extra <- setdiff(intersect(names(rgame_aes_names), names(u)), names(e))
+  band <- c("ymin", "ymax")
   msgs <- character()
+  if (geom == "geom_smooth" && all(band %in% missing)) {
+    msgs <- c(msgs, sprintf("%s: the target shows a confidence band (se = TRUE) but yours doesn't.", where))
+    missing <- setdiff(missing, band)
+  }
+  if (geom == "geom_smooth" && all(band %in% extra)) {
+    msgs <- c(msgs, sprintf("%s: your plot shows a confidence band (se = TRUE) but the target doesn't.", where))
+    extra <- setdiff(extra, band)
+  }
   if (length(missing)) {
     msgs <- c(msgs, sprintf("%s: your plot is missing %s.", where,
                             paste(rgame_aes_names[missing], collapse = ", ")))
+  }
+  if (length(extra)) {
+    msgs <- c(msgs, sprintf("%s: your plot has %s that the target doesn't.", where,
+                            paste(rgame_aes_names[extra], collapse = ", ")))
   }
   cols <- intersect(cols, names(u))
   if (nrow(u) != nrow(e)) {
@@ -350,12 +385,18 @@ rgame_compare_layer <- function(u, e, i, geom, tolerance = 1e-6) {
   ne <- normalise(e)
   # Compare each aesthetic as a set of values first, so one wrong variable
   # gives one message; then check the values are paired up the same way.
-  col_ok <- TRUE
-  for (nm in cols) {
-    if (!same_values(sort(nu[[nm]], na.last = TRUE), sort(ne[[nm]], na.last = TRUE))) {
-      col_ok <- FALSE
-      msgs <- c(msgs, sprintf("%s: the %s differ from the target.", where, rgame_aes_names[[nm]]))
-    }
+  differ <- Filter(function(nm) {
+    !same_values(sort(nu[[nm]], na.last = TRUE), sort(ne[[nm]], na.last = TRUE))
+  }, cols)
+  # Don't repeat the bar/box edges when the main position already differs.
+  if ("x" %in% differ) differ <- setdiff(differ, c("xmin", "xmax", "xend"))
+  if ("y" %in% differ) differ <- setdiff(differ, c("ymin", "ymax", "yend"))
+  col_ok <- !length(differ)
+  if (!col_ok) {
+    what <- unname(rgame_aes_names[differ])
+    what <- if (length(what) == 1) what else
+      paste(paste(what[-length(what)], collapse = ", "), "and", what[length(what)])
+    msgs <- c(msgs, sprintf("%s: the %s differ from the target.", where, what))
   }
   if (col_ok && !all(vapply(cols, function(nm) same_values(nu[[nm]], ne[[nm]]), TRUE))) {
     msgs <- c(msgs, sprintf("%s: the right values are there, but they are paired up differently (check which variable goes on which aesthetic).", where))
@@ -380,7 +421,10 @@ rgame_compare_ggplot <- function(user, expected, labels = c("title", "x", "y"),
   msgs <- character()
   gu <- vapply(user$layers, rgame_geom_name, "")
   ge <- vapply(expected$layers, rgame_geom_name, "")
-  if (!identical(gu, ge)) {
+  # Geoms that draw identically are treated as the same.
+  same_geom <- c(geom_col = "geom_bar")
+  canon <- function(g) ifelse(g %in% names(same_geom), same_geom[g], g)
+  if (!identical(unname(canon(gu)), unname(canon(ge)))) {
     fmt <- function(g) if (length(g)) paste(g, collapse = " + ") else "no layers"
     msgs <- c(msgs, sprintf("Expected the layer(s) %s, but your plot has %s.", fmt(ge), fmt(gu)))
   } else {

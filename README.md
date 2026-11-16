@@ -105,11 +105,19 @@ Only `title` is really needed; everything else has a default.
   the solution's with `all.equal()`. Works for numbers, vectors, data frames,
   lists, etc.
 - **plot**: the player's last value must be a ggplot. Both plots are built with
-  `ggplot_build()` and compared on: layer geoms, the drawn data for each
-  aesthetic (x, y, colour, fill, size, shape, ...; row order ignored), number
-  of facet panels, and the labels listed in `labels`. So `aes(wt, mpg)` vs
-  `aes(x = wt, y = mpg)`, or putting `colour =` in the geom instead of
-  `ggplot()`, both pass, but a different variable, geom or title does not.
+  `ggplot_build()` and compared on: layer geoms (in order), the drawn data for
+  each aesthetic (x, y, colour, fill, size, shape, box-plot quartiles, ...; row
+  order ignored; extra aesthetics such as an unwanted confidence band count as
+  a difference), number of facet panels, and the labels listed in `labels`.
+  So `aes(wt, mpg)` vs `aes(x = wt, y = mpg)`, `colour =` in the geom instead
+  of `ggplot()`, `facet_grid()` vs `facet_wrap()`, `geom_col()` vs
+  `geom_bar(stat = "identity")`, hex codes vs colour names, and pre-summarising
+  vs `stat_summary()` all pass, but a different variable, geom, binwidth or
+  title does not. Rows with a missing x or y are ignored (ggplot doesn't draw
+  them), and a scale's `name =` counts as that aesthetic's label.
+  Not compared: themes, coordinate systems (`coord_flip()`), axis limits and
+  facet layout, so avoid puzzles that hinge on those (or add a `check.R`).
+  Avoid random positions such as `geom_jitter()`, which differ on every build.
 - **output**: the printed console output is compared with the solution's
   (trailing whitespace ignored). The target output is shown to the player.
 

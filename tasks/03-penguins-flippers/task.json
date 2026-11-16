@@ -1,0 +1,15 @@
+{
+  "title": "Penguins: flippers and mass",
+  "type": "plot",
+  "difficulty": 1,
+  "points": 10,
+  "packages": [
+    "ggplot2",
+    "palmerpenguins"
+  ],
+  "hints": [
+    "Start with `ggplot(penguins, aes(x = ..., y = ...))`.",
+    "Points come from adding `+ geom_point()`."
+  ],
+  "starter": "# ggplot2 is loaded and `penguins` is ready to use\n"
+}

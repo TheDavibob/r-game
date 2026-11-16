@@ -1,0 +1,15 @@
+{
+  "title": "Three species, one plot",
+  "type": "plot",
+  "difficulty": 1,
+  "points": 10,
+  "packages": [
+    "ggplot2",
+    "palmerpenguins"
+  ],
+  "hints": [
+    "Colour that depends on the data is an aesthetic, so it goes *inside* `aes()`.",
+    "`aes(x = bill_length_mm, y = bill_depth_mm, colour = species)`"
+  ],
+  "starter": "# ggplot2 is loaded and `penguins` is ready to use\n"
+}

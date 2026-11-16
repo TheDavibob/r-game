@@ -1,6 +1,16 @@
 {
   "tasks": [
     "01-mean",
-    "02-scatter"
+    "02-scatter",
+    "03-penguins-flippers",
+    "04-penguins-species",
+    "05-penguins-headcount",
+    "06-penguins-islands",
+    "07-penguins-flipper-histogram",
+    "08-penguins-boxplot",
+    "09-penguins-palette",
+    "10-penguins-simpson",
+    "11-penguins-sexes",
+    "12-penguins-means"
   ]
 }

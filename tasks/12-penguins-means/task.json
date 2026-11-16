@@ -1,0 +1,17 @@
+{
+  "title": "Average weights",
+  "type": "plot",
+  "difficulty": 3,
+  "points": 30,
+  "packages": [
+    "ggplot2",
+    "palmerpenguins",
+    "dplyr"
+  ],
+  "hints": [
+    "Summarise first: `aggregate(body_mass_g ~ species + sex, data = ..., FUN = mean)`, or dplyr's `group_by()` + `summarise()`.",
+    "Bars whose height is already in the data use `geom_col()`.",
+    "Side-by-side bars: `position = \"dodge\"`."
+  ],
+  "starter": "# ggplot2 is loaded and `penguins` is ready to use\n"
+}
