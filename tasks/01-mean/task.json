@@ -1,0 +1,11 @@
+{
+  "title": "Find the average",
+  "type": "value",
+  "difficulty": 1,
+  "points": 10,
+  "hints": [
+    "R has a built-in function for the arithmetic mean.",
+    "Try `mean()` on the vector `x`."
+  ],
+  "starter": "# x is already defined for you\n"
+}

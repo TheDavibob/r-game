@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>R Code Quest</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>R Code Quest</h1>
+    <div class="topbar-right">
+      <span id="score" class="score">0 pts</span>
+      <span id="engine-status" class="pill pill-busy">Starting R…</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar">
+      <h2>Challenges</h2>
+      <ol id="task-list" class="task-list"></ol>
+      <button id="reset-progress" class="link-button">Reset progress</button>
+    </nav>
+
+    <main class="main">
+      <section id="task-view" hidden>
+        <div class="task-header">
+          <h2 id="task-title"></h2>
+          <span id="task-meta" class="task-meta"></span>
+        </div>
+        <div id="task-prompt" class="prompt"></div>
+
+        <details id="setup-box" class="setup-box">
+          <summary>Already defined for you</summary>
+          <pre><code id="setup-code"></code></pre>
+        </details>
+
+        <div id="target-box" class="target-box" hidden>
+          <h3>Target</h3>
+          <div id="target-content"></div>
+        </div>
+
+        <div class="editor-wrap">
+          <label for="editor" class="editor-label">Your R code <span class="kbd-hint">(Ctrl+Enter to run)</span></label>
+          <textarea id="editor" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+        </div>
+
+        <div class="actions">
+          <button id="run-btn" class="primary" disabled>Run &amp; check</button>
+          <button id="hint-btn">Hint</button>
+          <button id="reset-btn">Reset code</button>
+          <button id="solution-btn" hidden>Show solution</button>
+          <button id="restart-btn" class="link-button" hidden>Restart R</button>
+        </div>
+
+        <ul id="hints" class="hints"></ul>
+
+        <section id="result" class="result" hidden>
+          <div id="verdict" class="verdict"></div>
+          <ul id="messages" class="messages"></ul>
+          <div id="warnings" class="warnings" hidden></div>
+          <div id="plots" class="plots" hidden>
+            <figure><figcaption>Your plot</figcaption><div id="user-plot"></div></figure>
+            <figure id="target-plot-fig"><figcaption>Target</figcaption><div id="target-plot-copy"></div></figure>
+          </div>
+          <div id="console-wrap" hidden>
+            <h4>Console output</h4>
+            <pre id="console" class="console"></pre>
+          </div>
+          <div id="preview-wrap" hidden>
+            <h4>Your answer (str)</h4>
+            <pre id="preview" class="console"></pre>
+          </div>
+        </section>
+      </section>
+
+      <section id="empty-view" class="empty-view">
+        <p>Loading challenges…</p>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="confirm-dialog" class="confirm-dialog">
+    <p id="confirm-text"></p>
+    <div class="confirm-actions">
+      <button id="confirm-cancel">Cancel</button>
+      <button id="confirm-ok" class="primary">OK</button>
+    </div>
+  </dialog>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

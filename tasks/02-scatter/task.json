@@ -1,0 +1,14 @@
+{
+  "title": "Weight vs. fuel economy",
+  "type": "plot",
+  "difficulty": 2,
+  "points": 20,
+  "packages": ["ggplot2"],
+  "labels": ["title", "x", "y"],
+  "hints": [
+    "Start with `ggplot(mtcars, aes(x = wt, y = mpg))` and add a `geom_point()` layer.",
+    "Colour by the number of cylinders as a *category*: `colour = factor(cyl)`.",
+    "Add the title with `labs(title = \"...\")` or `ggtitle()`."
+  ],
+  "starter": "# ggplot2 is already loaded\nggplot(mtcars)\n"
+}
