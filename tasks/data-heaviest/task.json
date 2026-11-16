@@ -1,0 +1,18 @@
+{
+  "title": "The heavyweights",
+  "type": "value",
+  "difficulty": 2,
+  "points": 20,
+  "packages": [
+    "palmerpenguins",
+    "dplyr"
+  ],
+  "show_target": true,
+  "row_order": true,
+  "hints": [
+    "`arrange()` sorts rows; wrap a column in `desc()` to sort largest first.",
+    "`head(4)` (or `slice_head(n = 4)`) keeps the first four rows.",
+    "Chain the steps with the pipe `|>` (or `%>%`)."
+  ],
+  "starter": "# dplyr is loaded and `penguins` is ready to use\n"
+}

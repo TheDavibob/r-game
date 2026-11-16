@@ -1,0 +1,16 @@
+{
+  "title": "Dream team",
+  "type": "value",
+  "difficulty": 1,
+  "points": 10,
+  "packages": [
+    "palmerpenguins",
+    "dplyr"
+  ],
+  "show_target": true,
+  "hints": [
+    "dplyr's `filter()` keeps the rows where a condition is TRUE.",
+    "Comparisons use `==`, and text needs quotes: `island == \"Dream\"`."
+  ],
+  "starter": "# dplyr is loaded and `penguins` is ready to use\n"
+}

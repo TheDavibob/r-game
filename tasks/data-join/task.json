@@ -1,0 +1,16 @@
+{
+  "title": "Name that penguin",
+  "type": "value",
+  "difficulty": 3,
+  "points": 30,
+  "packages": [
+    "palmerpenguins",
+    "dplyr"
+  ],
+  "show_target": true,
+  "hints": [
+    "`left_join(penguins, species_info, by = \"species\")` adds the `latin_name` column.",
+    "Then `count()` by the two columns you need."
+  ],
+  "starter": "# dplyr is loaded and `penguins` is ready to use\n"
+}

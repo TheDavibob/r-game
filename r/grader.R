@@ -19,12 +19,17 @@
 #
 # Helpers available to task authors inside check.R:
 #   rgame_pass(msg), rgame_fail(msg),
-#   rgame_compare_value(user, expected, ...), rgame_compare_ggplot(user, expected, ...)
+#   rgame_compare_value(user, expected, ...), rgame_compare_table(user, expected, ...),
+#   rgame_compare_ggplot(user, expected, ...)
 # =============================================================================
 
 .rgame <- new.env()
 .rgame$tasks <- list()
 .rgame$plots <- list()
+
+# The console in the page is plain text, so stop cli/pillar adding colour codes.
+# Also show tibble numbers with more digits than the default 3 significant figures.
+options(cli.num_colors = 1L, crayon.enabled = FALSE, pillar.sigfig = 5)
 
 # ---- small utilities ---------------------------------------------------------
 
@@ -53,8 +58,23 @@ rgame_describe <- function(x) {
   sprintf("an object of class '%s'", paste(class(x), collapse = "/"))
 }
 
+# Print a table the way a tibble would: first `n` rows plus a note of the rest.
+rgame_table_text <- function(x, n = 10) {
+  txt <- tryCatch({
+    if (inherits(x, "tbl_df")) {
+      utils::capture.output(print(x, n = n))
+    } else {
+      out <- utils::capture.output(print(utils::head(as.data.frame(x), n)))
+      if (nrow(x) > n) out <- c(out, sprintf("# ... with %d more rows", nrow(x) - n))
+      c(sprintf("# A data frame: %d x %d", nrow(x), ncol(x)), out)
+    }
+  }, error = function(e) utils::capture.output(utils::str(x)))
+  paste(txt, collapse = "\n")
+}
+
 rgame_preview <- function(x, max_chars = 2000) {
   if (is.null(x) || rgame_is_ggplot(x)) return("")
+  if (is.data.frame(x)) return(rgame_table_text(x))
   txt <- tryCatch(
     paste(utils::capture.output(utils::str(x, give.attr = FALSE, vec.len = 6)), collapse = "\n"),
     error = function(e) ""
@@ -186,7 +206,9 @@ rgame_task_env <- function(task) {
 rgame_load_task <- function(id, type = "value", setup = "", solution = "",
                             check = "", packages = "", seed = 42,
                             tolerance = 1.5e-8, ignore_attributes = FALSE,
-                            variable = "", labels = "title,x,y", timeout = 10) {
+                            variable = "", labels = "title,x,y", timeout = 10,
+                            row_order = FALSE, col_order = FALSE,
+                            show_target = FALSE) {
   fail <- function(msg) rgame_json(list(ok = FALSE, error = msg))
 
   for (p in rgame_split(packages)) {
@@ -202,7 +224,9 @@ rgame_load_task <- function(id, type = "value", setup = "", solution = "",
     seed = as.numeric(seed), tolerance = as.numeric(tolerance),
     ignore_attributes = isTRUE(as.logical(ignore_attributes)),
     variable = variable, labels = rgame_split(labels),
-    timeout = as.numeric(timeout), check_fn = NULL
+    timeout = as.numeric(timeout), check_fn = NULL,
+    row_order = isTRUE(as.logical(row_order)),
+    col_order = isTRUE(as.logical(col_order))
   )
 
   env <- tryCatch(rgame_task_env(task), error = function(e) e)
@@ -235,10 +259,21 @@ rgame_load_task <- function(id, type = "value", setup = "", solution = "",
   }
 
   .rgame$tasks[[id]] <- task
+
+  # Text shown to the player as the "Target" (plots are rendered separately).
+  target_text <- if (type == "output") {
+    task$expected_output
+  } else if (isTRUE(as.logical(show_target)) && !rgame_is_ggplot(task$expected)) {
+    if (is.data.frame(task$expected)) rgame_table_text(task$expected)
+    else paste(utils::capture.output(print(task$expected)), collapse = "\n")
+  } else {
+    ""
+  }
+
   rgame_json(list(
     ok = TRUE,
     has_expected_plot = rgame_is_ggplot(task$expected),
-    expected_output = if (type == "output") task$expected_output else ""
+    target_text = target_text
   ))
 }
 
@@ -265,6 +300,108 @@ rgame_compare_value <- function(user, expected, tolerance = 1.5e-8,
   ae <- gsub("target", "expected", gsub("current", "your answer", ae))
   msgs <- c(msgs, utils::head(paste("Detail:", ae), 3))
   rgame_fail(msgs)
+}
+
+# Make tibbles, grouped tibbles and data frames comparable: plain data.frame,
+# no row names or groups, factors as character.
+rgame_plain_df <- function(x) {
+  x <- as.data.frame(x, stringsAsFactors = FALSE)
+  x[] <- lapply(x, function(v) if (is.factor(v)) as.character(v) else v)
+  attr(x, "groups") <- NULL
+  rownames(x) <- NULL
+  x
+}
+
+rgame_compare_table <- function(user, expected, row_order = FALSE,
+                                col_order = FALSE, tolerance = 1.5e-8) {
+  if (!is.data.frame(user)) {
+    return(rgame_fail(c("Your answer should be a data frame (or tibble).",
+                        sprintf("Your last value was %s.", rgame_describe(user)))))
+  }
+  u <- rgame_plain_df(user)
+  e <- rgame_plain_df(expected)
+  head_msg <- "Your table doesn't match the target."
+  list_str <- function(v) paste(v, collapse = ", ")
+
+  missing <- setdiff(names(e), names(u))
+  extra <- setdiff(names(u), names(e))
+  if (length(missing) || length(extra)) {
+    msgs <- head_msg
+    if (length(missing)) msgs <- c(msgs, sprintf("Missing column(s): %s.", list_str(missing)))
+    if (length(extra)) msgs <- c(msgs, sprintf("Unexpected column(s): %s.", list_str(extra)))
+    msgs <- c(msgs, sprintf("The target's columns are: %s.", list_str(names(e))))
+    return(rgame_fail(msgs))
+  }
+  if (col_order && !identical(names(u), names(e))) {
+    return(rgame_fail(c(head_msg, sprintf("The columns should be in this order: %s.", list_str(names(e))))))
+  }
+  u <- u[names(e)]
+
+  if (nrow(u) != nrow(e)) {
+    return(rgame_fail(c(head_msg, sprintf("The target has %d row(s); yours has %d.", nrow(e), nrow(u)))))
+  }
+
+  flat <- function(v) {
+    if (is.list(v)) vapply(v, function(z) paste(format(z), collapse = ","), "") else v
+  }
+  same <- function(a, b) {
+    a <- flat(a)
+    b <- flat(b)
+    if (is.numeric(a) != is.numeric(b)) return(FALSE) # e.g. numbers stored as text
+    if (is.numeric(a) && is.numeric(b)) {
+      isTRUE(all.equal(b, a, tolerance = tolerance, check.attributes = FALSE))
+    } else {
+      identical(as.character(a), as.character(b))
+    }
+  }
+  sort_rows <- function(d) {
+    if (!nrow(d)) return(d)
+    keys <- lapply(d, function(v) { v <- flat(v); if (is.numeric(v)) signif(v, 8) else as.character(v) })
+    d[do.call(order, c(unname(keys), list(na.last = TRUE))), , drop = FALSE]
+  }
+
+  # 1. Does each column hold the right values (in any order)?
+  wrong <- character()
+  too_many_na <- character()
+  type_msgs <- character()
+  for (nm in names(e)) {
+    a <- flat(u[[nm]])
+    b <- flat(e[[nm]])
+    if (same(sort(a, na.last = TRUE), sort(b, na.last = TRUE))) next
+    wrong <- c(wrong, nm)
+    if (sum(is.na(a)) > sum(is.na(b))) {
+      too_many_na <- c(too_many_na, nm)
+    } else if (is.numeric(b) && !is.numeric(a)) {
+      type_msgs <- c(type_msgs, sprintf("Column '%s' should be numeric, but yours is %s.", nm, class(u[[nm]])[1]))
+    }
+  }
+  if (length(wrong)) {
+    quoted <- function(v) {
+      v <- sprintf("'%s'", v)
+      if (length(v) == 1) v else paste(paste(v[-length(v)], collapse = ", "), "and", v[length(v)])
+    }
+    msgs <- c(head_msg, sprintf("The values in column%s %s differ from the target.",
+                                if (length(wrong) > 1) "s" else "", quoted(wrong)))
+    if (length(too_many_na)) {
+      msgs <- c(msgs, sprintf(
+        "%s more missing values (NA) than the target. Do you need na.rm = TRUE, to filter out NAs, or to fill in empty values?",
+        if (length(too_many_na) > 1) paste(quoted(too_many_na), "have") else paste(quoted(too_many_na), "has")))
+    }
+    return(rgame_fail(c(msgs, type_msgs)))
+  }
+
+  # 2. Are the values combined into the same rows?
+  us <- sort_rows(u)
+  es <- sort_rows(e)
+  if (!all(vapply(names(e), function(nm) same(us[[nm]], es[[nm]]), TRUE))) {
+    return(rgame_fail(c(head_msg, "Each column has the right values, but they are combined into rows differently.")))
+  }
+
+  # 3. Are the rows in the right order (only if the task asks for it)?
+  if (row_order && !all(vapply(names(e), function(nm) same(u[[nm]], e[[nm]]), TRUE))) {
+    return(rgame_fail(c(head_msg, "You have the right rows, but not in the right order.")))
+  }
+  rgame_pass("Correct!")
 }
 
 rgame_compare_output <- function(user_output, expected_output) {
@@ -501,8 +638,13 @@ rgame_submit <- function(id, code) {
         rgame_run_custom(task$check_fn, user_value, task$expected, env, r$output)
       } else {
         switch(task$type,
-          value = rgame_compare_value(user_value, task$expected, task$tolerance,
-                                      task$ignore_attributes),
+          value = if (is.data.frame(task$expected)) {
+            rgame_compare_table(user_value, task$expected, task$row_order,
+                                task$col_order, task$tolerance)
+          } else {
+            rgame_compare_value(user_value, task$expected, task$tolerance,
+                                task$ignore_attributes)
+          },
           plot = rgame_compare_ggplot(user_value, task$expected, task$labels),
           output = rgame_compare_output(r$output, task$expected_output),
           rgame_fail(paste("Unknown task type:", task$type))

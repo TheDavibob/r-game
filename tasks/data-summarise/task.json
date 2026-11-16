@@ -1,0 +1,17 @@
+{
+  "title": "Species profiles",
+  "type": "value",
+  "difficulty": 2,
+  "points": 20,
+  "packages": [
+    "palmerpenguins",
+    "dplyr"
+  ],
+  "show_target": true,
+  "hints": [
+    "`group_by(species)` followed by `summarise()` makes one row per species.",
+    "Inside `summarise()`, `n()` counts the rows in each group.",
+    "`mean()` returns NA if any value is missing, unless you add `na.rm = TRUE`."
+  ],
+  "starter": "# dplyr is loaded and `penguins` is ready to use\n"
+}

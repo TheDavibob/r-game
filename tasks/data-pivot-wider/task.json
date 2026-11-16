@@ -1,0 +1,18 @@
+{
+  "title": "Island by species grid",
+  "type": "value",
+  "difficulty": 3,
+  "points": 30,
+  "packages": [
+    "palmerpenguins",
+    "dplyr",
+    "tidyr"
+  ],
+  "show_target": true,
+  "hints": [
+    "Start with the counts in long form: `count(penguins, island, species)`.",
+    "tidyr's `pivot_wider()` turns the values of one column into new columns.",
+    "`pivot_wider()` has a `values_fill` argument for the empty combinations."
+  ],
+  "starter": "# dplyr and tidyr are loaded and `penguins` is ready to use\n"
+}

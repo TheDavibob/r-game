@@ -18,7 +18,8 @@ python serve.py
 ```
 
 `setup_offline.py` downloads webR (~47 MB) into `vendor/webr/` and the R packages
-your tasks need (ggplot2 + dependencies is ~17 MB) into `vendor/repo/`. Run it
+your tasks need (currently ggplot2, dplyr, tidyr, palmerpenguins and their
+dependencies, ~37 MB) into `vendor/repo/`. Run it
 again whenever a task starts using a new package. `serve.py` starts
 `http://localhost:8080` and opens your browser. On Windows you can double-click
 `start-game.bat` instead.
@@ -65,8 +66,19 @@ cat(rgame_submit("t", "sum(x) / length(x)"))
 
 ## Writing tasks
 
-Add a folder under `tasks/` and list it in `tasks/index.json` (that list sets
-the play order).
+Add a folder under `tasks/` and list it in `tasks/index.json`. The index groups
+tasks into **tracks**, each shown as a tab in the sidebar (currently "Data" and
+"Plots"); the order within a track is the play order. Add a new object to
+`tracks` to get a new tab.
+
+```json
+{
+  "tracks": [
+    { "id": "data",  "title": "Data",  "tasks": ["01-mean", "data-filter-dream", "..."] },
+    { "id": "plots", "title": "Plots", "tasks": ["02-scatter", "..."] }
+  ]
+}
+```
 
 ```
 tasks/03-my-task/
@@ -98,12 +110,22 @@ Only `title` is really needed; everything else has a default.
 | `labels` | `["title","x","y"]` | plot labels that must match; `[]` to ignore labels |
 | `timeout` | `10` | seconds before the player's code is stopped |
 | `show_setup` | `true` | show `setup.R` to the player |
+| `show_target` | `false` | show the expected value/table as the "Target" (first 10 rows of a table) |
+| `row_order` | `false` | tables: rows must be in the same order as the solution's |
+| `col_order` | `false` | tables: columns must be in the same order as the solution's |
 
 ### Task types
 
 - **value**: the last value of the player's code (or `variable`) is compared to
-  the solution's with `all.equal()`. Works for numbers, vectors, data frames,
-  lists, etc.
+  the solution's with `all.equal()`. Works for numbers, vectors, lists, etc.
+  If the solution's value is a **data frame or tibble**, a table comparison is
+  used instead: tibbles, grouped tibbles and data frames are treated alike,
+  factors match character columns, integers match doubles, and row/column
+  order are ignored unless `row_order`/`col_order` is set. Column names must
+  match exactly (so state them in the prompt). Feedback names the missing or
+  unexpected columns, a wrong row count, which columns hold different values
+  (with a hint when there are extra `NA`s, e.g. a forgotten `na.rm = TRUE`),
+  values combined into rows differently, or rows in the wrong order.
 - **plot**: the player's last value must be a ggplot. Both plots are built with
   `ggplot_build()` and compared on: layer geoms (in order), the drawn data for
   each aesthetic (x, y, colour, fill, size, shape, box-plot quartiles, ...; row

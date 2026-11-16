@@ -1,0 +1,16 @@
+{
+  "title": "Penguin census",
+  "type": "value",
+  "difficulty": 1,
+  "points": 10,
+  "packages": [
+    "palmerpenguins",
+    "dplyr"
+  ],
+  "show_target": true,
+  "hints": [
+    "dplyr's `count()` counts rows for each combination of the columns you give it.",
+    "The count column it makes is called `n`."
+  ],
+  "starter": "# dplyr is loaded and `penguins` is ready to use\n"
+}

@@ -11,7 +11,10 @@ const STORE_KEY = 'rcodequest-progress-v1';
 const SOLUTION_AFTER_ATTEMPTS = 3; // failed attempts before "Show solution" appears
 
 const engine = new REngine();
-let tasks = [];        // metadata for every task (from task.json)
+window.rgameEngine = engine; // handy for poking at R from the browser's dev tools
+let tracks = [];       // [{ id, title, tasks: [...] }], shown as tabs
+let currentTrack = null;
+let tasks = [];        // metadata for every task in every track (from task.json)
 let current = null;    // the selected task, with its prompt/setup/solution text
 let currentReady = false;
 let selectToken = 0;   // guards against races when switching tasks quickly
@@ -20,8 +23,12 @@ let targetCanvas = null;
 // ---- progress (saved in the browser's localStorage) ---------------------------
 
 const progress = (() => {
-  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || { tasks: {} }; }
-  catch { return { tasks: {} }; }
+  let p;
+  try { p = JSON.parse(localStorage.getItem(STORE_KEY)); } catch { /* corrupt: start again */ }
+  p ||= {};
+  p.tasks ||= {};
+  p.lastTask ||= {}; // track id -> task id last opened in that tab
+  return p;
 })();
 
 function taskState(id) {
@@ -70,12 +77,38 @@ function setStatus(kind, text) {
   el.textContent = text;
 }
 
-// ---- task list ---------------------------------------------------------------
+// ---- tabs (tracks) and task list ---------------------------------------------
+
+function renderTabs() {
+  const bar = $('tabs');
+  bar.hidden = tracks.length < 2;
+  bar.innerHTML = '';
+  for (const track of tracks) {
+    const solved = track.tasks.filter((t) => taskState(t.id).solved).length;
+    const btn = document.createElement('button');
+    btn.setAttribute('role', 'tab');
+    btn.setAttribute('aria-selected', String(track.id === currentTrack));
+    btn.className = track.id === currentTrack ? 'tab active' : 'tab';
+    btn.innerHTML = `${escapeHtml(track.title)} <span class="tab-count">${solved}/${track.tasks.length}</span>`;
+    btn.addEventListener('click', () => openTrack(track.id));
+    bar.appendChild(btn);
+  }
+}
+
+// Switch tabs: reopen the task last viewed in that tab, else its first unsolved one.
+function openTrack(trackId) {
+  const track = tracks.find((t) => t.id === trackId);
+  if (!track || !track.tasks.length) return;
+  const last = track.tasks.find((t) => t.id === progress.lastTask[trackId]);
+  const next = last || track.tasks.find((t) => !taskState(t.id).solved) || track.tasks[0];
+  selectTask(next.id);
+}
 
 function renderTaskList() {
   const list = $('task-list');
   list.innerHTML = '';
-  for (const t of tasks) {
+  const track = tracks.find((t) => t.id === currentTrack);
+  for (const t of track ? track.tasks : tasks) {
     const st = taskState(t.id);
     const li = document.createElement('li');
     if (current?.id === t.id) li.className = 'active';
@@ -100,7 +133,12 @@ async function selectTask(id) {
   const task = await loadTaskFiles(meta);
   if (token !== selectToken) return;
   current = task;
+  currentTrack = task.track;
+  progress.lastTask[task.track] = id;
+  progress.lastTrack = task.track;
+  saveProgress();
   history.replaceState(null, '', `#${id}`);
+  renderTabs();
   renderTaskList();
 
   const st = taskState(id);
@@ -141,8 +179,8 @@ async function prepareTask(task, token = selectToken) {
         $('target-content').replaceChildren(targetCanvas);
         $('target-box').hidden = false;
       }
-    } else if (task.type === 'output' && info.expected_output) {
-      $('target-content').innerHTML = `<pre class="console">${escapeHtml(info.expected_output)}</pre>`;
+    } else if (info.target_text) {
+      $('target-content').innerHTML = `<pre class="console">${escapeHtml(info.target_text)}</pre>`;
       $('target-box').hidden = false;
     }
     currentReady = true;
@@ -212,6 +250,7 @@ async function runCode() {
   }
   saveProgress();
   updateScore();
+  renderTabs();
   renderTaskList();
   updateSolutionButton();
 
@@ -378,17 +417,22 @@ async function boot() {
   const enginePromise = startEngine(); // start R while the first task renders
 
   try {
-    tasks = await loadTaskIndex();
+    tracks = await loadTaskIndex();
+    tasks = tracks.flatMap((t) => t.tasks);
   } catch (e) {
     $('empty-view').innerHTML = `<p>Could not load challenges: ${escapeHtml(e.message)}</p>`;
     return;
   }
-  renderTaskList();
   updateScore();
 
+  // Start on the task in the URL (#task-id), else wherever the player was last.
   const fromHash = decodeURIComponent(location.hash.slice(1));
-  const start = tasks.find((t) => t.id === fromHash) || tasks.find((t) => !taskState(t.id).solved) || tasks[0];
-  if (start) await selectTask(start.id);
+  if (tasks.some((t) => t.id === fromHash)) {
+    await selectTask(fromHash);
+  } else if (tracks.length) {
+    const lastTrack = tracks.find((t) => t.id === progress.lastTrack) || tracks[0];
+    openTrack(lastTrack.id);
+  }
   await enginePromise;
 }
 

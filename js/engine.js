@@ -116,7 +116,8 @@ export class REngine {
     return this._serial(async () => {
       const json = await this.webR.evalRString(
         'rgame_load_task(id, type, setup, solution, check, packages, seed, ' +
-        'tolerance, ignore_attributes, variable, labels, timeout)',
+        'tolerance, ignore_attributes, variable, labels, timeout, ' +
+        'row_order, col_order, show_target)',
         {
           env: {
             id: task.id,
@@ -131,6 +132,9 @@ export class REngine {
             variable: task.variable,
             labels: task.labels.join(','),
             timeout: task.timeout,
+            row_order: task.row_order,
+            col_order: task.col_order,
+            show_target: task.show_target,
           },
         },
       );

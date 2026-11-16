@@ -1,0 +1,18 @@
+{
+  "title": "Tidy measurements",
+  "type": "value",
+  "difficulty": 3,
+  "points": 30,
+  "packages": [
+    "palmerpenguins",
+    "dplyr",
+    "tidyr"
+  ],
+  "show_target": true,
+  "hints": [
+    "tidyr's `pivot_longer()` stacks several columns into a name column and a value column.",
+    "Use `names_to = \"measurement\"` so the new name column is called `measurement`.",
+    "Then `group_by(species, measurement)` and `summarise()`."
+  ],
+  "starter": "# dplyr and tidyr are loaded and `penguins` is ready to use\n"
+}

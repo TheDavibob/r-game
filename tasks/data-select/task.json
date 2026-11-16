@@ -1,0 +1,16 @@
+{
+  "title": "Pick your columns",
+  "type": "value",
+  "difficulty": 1,
+  "points": 10,
+  "packages": [
+    "palmerpenguins",
+    "dplyr"
+  ],
+  "show_target": true,
+  "col_order": true,
+  "hints": [
+    "`select()` keeps the columns you name, in the order you name them."
+  ],
+  "starter": "# dplyr is loaded and `penguins` is ready to use\n"
+}

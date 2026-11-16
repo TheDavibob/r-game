@@ -1,0 +1,16 @@
+{
+  "title": "Year by year",
+  "type": "value",
+  "difficulty": 2,
+  "points": 20,
+  "packages": [
+    "palmerpenguins",
+    "dplyr"
+  ],
+  "show_target": true,
+  "hints": [
+    "You can group by more than one column: `group_by(species, year)`.",
+    "`median()` needs `na.rm = TRUE` too."
+  ],
+  "starter": "# dplyr is loaded and `penguins` is ready to use\n"
+}

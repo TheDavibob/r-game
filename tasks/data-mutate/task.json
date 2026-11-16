@@ -1,0 +1,16 @@
+{
+  "title": "New columns",
+  "type": "value",
+  "difficulty": 2,
+  "points": 20,
+  "packages": [
+    "palmerpenguins",
+    "dplyr"
+  ],
+  "show_target": true,
+  "hints": [
+    "`mutate()` adds new columns calculated from existing ones.",
+    "You can make several columns in one `mutate()`, separated by commas."
+  ],
+  "starter": "# dplyr is loaded and `penguins` is ready to use\n"
+}

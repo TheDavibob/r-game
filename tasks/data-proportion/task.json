@@ -1,0 +1,17 @@
+{
+  "title": "Heavy hitters",
+  "type": "value",
+  "difficulty": 3,
+  "points": 30,
+  "packages": [
+    "palmerpenguins",
+    "dplyr"
+  ],
+  "show_target": true,
+  "hints": [
+    "`body_mass_g > 4500` gives TRUE/FALSE for each penguin.",
+    "The mean of a TRUE/FALSE vector is the proportion of TRUEs.",
+    "Remove the unknowns first with `filter(!is.na(body_mass_g))`, or use `na.rm = TRUE`."
+  ],
+  "starter": "# dplyr is loaded and `penguins` is ready to use\n"
+}

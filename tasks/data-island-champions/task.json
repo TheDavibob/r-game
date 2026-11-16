@@ -1,0 +1,17 @@
+{
+  "title": "Island champions",
+  "type": "value",
+  "difficulty": 3,
+  "points": 30,
+  "packages": [
+    "palmerpenguins",
+    "dplyr"
+  ],
+  "show_target": true,
+  "hints": [
+    "Work within each island: `group_by(island)`.",
+    "`slice_max(column, n = 1)` keeps the row with the largest value in each group.",
+    "Or keep rows where `body_mass_g == max(body_mass_g, na.rm = TRUE)`."
+  ],
+  "starter": "# dplyr is loaded and `penguins` is ready to use\n"
+}

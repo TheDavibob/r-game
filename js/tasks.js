@@ -1,6 +1,11 @@
 // Loads challenge definitions from the tasks/ folder.
 //
-// tasks/index.json lists task folders in play order. Each folder contains:
+// tasks/index.json groups task folders into tracks (shown as tabs), in play
+// order:
+//   { "tracks": [ { "id": "data", "title": "Data", "tasks": ["01-mean", ...] }, ... ] }
+// A plain { "tasks": [...] } list also works (one track).
+//
+// Each task folder contains:
 //   task.json    metadata (see TASK_DEFAULTS below and README.md)
 //   prompt.md    what the player is asked to do
 //   setup.R      (optional) code run before the player's code; its objects are
@@ -24,6 +29,9 @@ export const TASK_DEFAULTS = {
   labels: ['title', 'x', 'y'], // plot labels that must match for "plot" tasks
   timeout: 10,            // seconds before the player's code is stopped
   show_setup: true,       // show setup.R to the player
+  show_target: false,     // show the expected value/table as the "Target"
+  row_order: false,       // tables: rows must be in the same order
+  col_order: false,       // tables: columns must be in the same order
 };
 
 const base = new URL('../tasks/', import.meta.url);
@@ -37,13 +45,21 @@ async function fetchText(path, optional = false) {
   return res.text();
 }
 
+// Returns [{ id, title, tasks: [taskMeta, ...] }, ...]
 export async function loadTaskIndex() {
   const index = JSON.parse(await fetchText('index.json'));
+  const tracks = index.tracks || [{ id: 'all', title: 'Challenges', tasks: index.tasks }];
   return Promise.all(
-    index.tasks.map(async (id) => {
-      const meta = JSON.parse(await fetchText(`${id}/task.json`));
-      return { ...TASK_DEFAULTS, ...meta, id };
-    }),
+    tracks.map(async (track) => ({
+      id: track.id,
+      title: track.title,
+      tasks: await Promise.all(
+        track.tasks.map(async (id) => {
+          const meta = JSON.parse(await fetchText(`${id}/task.json`));
+          return { ...TASK_DEFAULTS, ...meta, id, track: track.id };
+        }),
+      ),
+    })),
   );
 }
 
