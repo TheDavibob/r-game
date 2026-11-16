@@ -17,6 +17,9 @@
 
 * { box-sizing: border-box; }
 
+/* Make the hidden attribute win over display rules such as .plots { display: grid }. */
+[hidden] { display: none !important; }
+
 /* Show code exactly as typed: no ligatures turning |> or != into symbols. */
 code, pre, textarea { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
 
@@ -71,7 +74,6 @@ body {
   border-radius: 8px;
   margin-bottom: 0.75rem;
 }
-.tabs[hidden] { display: none; }
 .tab {
   flex: 1;
   border: 0;
@@ -218,6 +220,85 @@ h4 { margin: 0.75rem 0 0.25rem; font-size: 0.9rem; color: var(--muted); }
 .confirm-dialog::backdrop { background: rgba(20, 25, 35, 0.35); }
 .confirm-dialog p { margin: 0 0 1rem; }
 .confirm-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+/* ---- celebration: dancing penguins (js/celebrate.js) ---- */
+.celebration {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  z-index: 50;
+  overflow: hidden;
+  padding-top: 40px; /* room for hops */
+}
+.celebration-banner {
+  font-weight: 700;
+  font-size: 1.15rem;
+  background: var(--panel);
+  border: 2px solid var(--good);
+  color: var(--good);
+  padding: 0.35rem 1rem;
+  border-radius: 999px;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  animation: banner-pop 3.6s ease-in-out both;
+}
+.penguin-line { display: flex; gap: clamp(0.25rem, 1.5vw, 1.25rem); align-items: flex-end; }
+.penguin {
+  width: clamp(54px, 9vw, 96px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: penguin-visit 3.6s ease-in-out both;
+}
+.penguin .dancer { transform-origin: 50% 100%; perspective: 400px; }
+.penguin svg { display: block; width: 100%; height: auto; overflow: visible; }
+.penguin-tag {
+  margin-top: 2px;
+  color: #fff;
+  font-size: clamp(0.6rem, 1.1vw, 0.75rem);
+  font-weight: 700;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.flipper { transform-box: fill-box; animation: flap 0.25s ease-in-out infinite alternate; }
+.flipper-l { transform-origin: 100% 10%; }
+.flipper-r { transform-origin: 0% 10%; animation-name: flap-r; }
+
+@keyframes penguin-visit {
+  0% { transform: translateY(140%); }
+  14% { transform: translateY(0); }
+  86% { transform: translateY(0); }
+  100% { transform: translateY(140%); }
+}
+@keyframes banner-pop {
+  0% { opacity: 0; transform: scale(0.6); }
+  12%, 85% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.9); }
+}
+@keyframes flap { from { transform: rotate(0deg); } to { transform: rotate(28deg); } }
+@keyframes flap-r { from { transform: rotate(0deg); } to { transform: rotate(-28deg); } }
+@keyframes dance-bounce { from { transform: translateY(0); } to { transform: translateY(-16px); } }
+@keyframes dance-waddle { from { transform: rotate(-11deg); } to { transform: rotate(11deg); } }
+@keyframes dance-hop {
+  0% { transform: translateY(0) scale(1.06, 0.92); }
+  60% { transform: translateY(-30px) scale(0.96, 1.05); }
+  100% { transform: translateY(-34px) scale(1, 1); }
+}
+@keyframes dance-shuffle { from { transform: translateX(-10px) rotate(-6deg); } to { transform: translateX(10px) rotate(6deg); } }
+@keyframes dance-spin {
+  0%, 15% { transform: rotateY(0deg); }
+  85%, 100% { transform: rotateY(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celebration *, .celebration { animation: none !important; }
+}
 
 .empty-view { color: var(--muted); }
 .solution { background: var(--code-bg); padding: 0.75rem; border-radius: 6px; font-family: var(--mono); white-space: pre-wrap; }

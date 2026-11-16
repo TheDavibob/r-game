@@ -5,6 +5,7 @@
 import { REngine } from './engine.js';
 import { loadTaskIndex, loadTaskFiles } from './tasks.js';
 import { renderMarkdown, escapeHtml } from './markdown.js';
+import { celebrate } from './celebrate.js';
 
 const $ = (id) => document.getElementById(id);
 const STORE_KEY = 'rcodequest-progress-v1';
@@ -12,6 +13,7 @@ const SOLUTION_AFTER_ATTEMPTS = 3; // failed attempts before "Show solution" app
 
 const engine = new REngine();
 window.rgameEngine = engine; // handy for poking at R from the browser's dev tools
+window.rgameCelebrate = celebrate; // e.g. rgameCelebrate({ count: 7, banner: 'Hi!' })
 let tracks = [];       // [{ id, title, tasks: [...] }], shown as tabs
 let currentTrack = null;
 let tasks = [];        // metadata for every task in every track (from task.json)
@@ -240,11 +242,16 @@ async function runCode() {
   else if (res.images?.length) userCanvas = res.images[res.images.length - 1];
 
   if (res.status === 'correct') {
-    if (!st.solved) {
+    const firstSolve = !st.solved;
+    if (firstSolve) {
       st.solved = true;
       st.points = pointsFor(task, st);
       res.earned = st.points;
     }
+    const track = tracks.find((t) => t.id === task.track);
+    const trackDone = firstSolve && track && track.tasks.every((t) => taskState(t.id).solved);
+    if (trackDone) celebrate({ count: 7, banner: `All ${track.title} challenges solved!` });
+    else celebrate({ count: firstSolve ? 4 : 1 });
   } else if (!st.solved) {
     st.attempts += 1;
   }

@@ -218,6 +218,12 @@ Helpers you can use inside `check()`: `rgame_compare_value()`,
 
 - Progress, scores and the code typed for each task are kept in the browser's
   localStorage. "Reset progress" in the sidebar clears it.
+- Correct answers bring on dancing penguins (`js/celebrate.js`): Adélie,
+  Chinstrap and Gentoo, drawn in SVG with their real markings and mixed so a
+  troupe always shows every species. Four for a first solve, one for a
+  re-solve, seven and a banner for finishing a tab. Players who set "reduce
+  motion" in their OS get still penguins. Try it from the browser console
+  with `rgameCelebrate({ count: 7, banner: 'Hello!' })`.
 - Base-graphics plots (`plot()`, `hist()`) are drawn and shown, but only ggplot
   plots can be graded as plots. For a base-graphics task, use a custom check
   that inspects the player's code or data instead.
