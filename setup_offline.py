@@ -1,11 +1,17 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = []
+# ///
 """
 Download webR and the R packages the challenges need, so the game runs with no
 internet connection.
 
 Run once (and again whenever a task starts using a new package):
 
-    python setup_offline.py                 # packages listed in tasks/*/task.json
-    python setup_offline.py dplyr tidyr     # ...plus extra packages
+    uv run setup_offline.py                 # packages listed in tasks/*/task.json
+    uv run setup_offline.py dplyr tidyr     # ...plus extra packages
+
+(`python setup_offline.py` works too; only the standard library is used.)
 
 Creates:
     vendor/webr/   the webR runtime (R compiled to WebAssembly), ~100 MB unpacked
@@ -179,7 +185,7 @@ def main():
         mirror_packages(wanted, r_version)
     else:
         print("No packages requested by tasks.")
-    print("\nDone. Start the game with:  python serve.py")
+    print("\nDone. Start the game with:  uv run serve.py   (or: python serve.py)")
 
 
 if __name__ == "__main__":

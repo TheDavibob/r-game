@@ -1,0 +1,9 @@
+# docker compose up --build    then open http://localhost:8080
+services:
+  r-code-quest:
+    build: .
+    image: r-code-quest
+    ports:
+      # Only reachable from this computer. webR needs to be opened via
+      # "localhost" (a secure context), so use http://localhost:8080.
+      - "127.0.0.1:8080:8080"

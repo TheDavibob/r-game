@@ -1,0 +1,5 @@
+# The image downloads its own copy of vendor/ at build time.
+vendor/
+.git/
+.claude/
+__pycache__/

@@ -4,30 +4,39 @@ A browser game of small R coding challenges. The player reads a prompt, writes R
 code, and the game runs it with **webR** (real R compiled to WebAssembly, running
 inside the browser) and grades it against a reference solution.
 
-Nothing to install for players beyond Python (used only for a tiny local web
-server), and it works fully offline once set up.
+R itself does not need to be installed. The only tool needed is
+[uv](https://docs.astral.sh/uv/) (or Python 3.9+), used for a tiny local web
+server, and the game works fully offline once set up. Or use Docker (below).
 
 ## Quick start
 
-You need Python 3 and a modern browser (developed and tested in Chrome/Edge).
-R itself does not need to be installed. After cloning, from the repo folder:
+You need [uv](https://docs.astral.sh/uv/getting-started/installation/) and a
+modern browser (developed and tested in Chrome/Edge). uv downloads a suitable
+Python by itself if you don't have one. After cloning, from the repo folder:
 
 1. Download webR and the R packages, once (needs internet, ~85 MB, under a
    minute on a fast connection):
 
    ```bash
-   python setup_offline.py
+   uv run setup_offline.py
    ```
 
 2. Start the game (no internet needed from here on):
 
    ```bash
-   python serve.py
+   uv run serve.py
    ```
 
    This serves `http://localhost:8080` and opens your browser; press Ctrl+C to
-   stop. On Windows you can double-click `start-game.bat` instead. On macOS or
-   Linux use `python3` if `python` isn't found.
+   stop.
+
+**Shortcut:** double-click `start-game.bat` (Windows) or run `./start-game.sh`
+(macOS/Linux). They do both steps, skipping the download if it's already done.
+
+**Without uv:** the scripts only use Python's standard library, so
+`python setup_offline.py` and `python serve.py` work just as well (use
+`python3` on macOS/Linux). The launchers fall back to Python if uv isn't
+installed.
 
 `setup_offline.py` puts webR (~47 MB) into `vendor/webr/` and the packages the
 tasks list (currently ggplot2, dplyr, tidyr, palmerpenguins and their
@@ -37,6 +46,35 @@ using a new package. `vendor/` is not committed to git.
 If `vendor/` is missing, the game still works online by loading webR from its
 CDN. Progress is saved in the browser per address, so if port 8080 is busy and
 the server picks another port, you start with fresh progress there.
+
+## Docker
+
+The Docker image is fully self-contained: webR and all the R packages are
+downloaded into the image when it is built, so the container needs no internet
+and nothing else needs installing on the host.
+
+```bash
+docker compose up --build
+```
+
+Then open **http://localhost:8080** (use `localhost` rather than `127.0.0.1`
+or another hostname: webR only runs on a "secure" address). Stop it with Ctrl+C
+or `docker compose down`. Without compose:
+
+```bash
+docker build -t r-code-quest .
+```
+
+```bash
+docker run --rm -p 127.0.0.1:8080:8080 r-code-quest
+```
+
+The built image is about 210 MB and can be moved to an offline machine with
+`docker save r-code-quest -o r-code-quest.tar` and `docker load -i r-code-quest.tar`.
+Edits to tasks need a rebuild (`docker compose up --build`); only the R
+packages layer is re-downloaded, not webR. The Dockerfile hasn't been built on
+the development machine (no Docker there), but its steps were replayed on Linux
+and the result tested in the browser.
 
 ## How it fits together
 
@@ -50,6 +88,8 @@ r/grader.R                  ALL grading logic, in plain R, loaded into webR
 tasks/                      the challenges (one folder each)
 setup_offline.py            downloads webR + packages into vendor/
 serve.py                    local web server with the headers webR needs
+start-game.bat / .sh        one-click launchers (setup if needed, then serve)
+Dockerfile, compose.yaml    self-contained container image
 ```
 
 What happens when a task is opened and answered:

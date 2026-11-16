@@ -1,3 +1,7 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = []
+# ///
 """
 Local web server for R Code Quest.
 
@@ -6,7 +10,8 @@ http://localhost. This server also sends the "cross-origin isolation" headers
 that let webR use SharedArrayBuffer, which is what allows a runaway loop to be
 interrupted.
 
-Usage:  python serve.py [--port 8080] [--no-browser]
+Usage:  uv run serve.py [--port 8080] [--no-browser] [--host 127.0.0.1]
+   or:  python serve.py ...
 """
 
 import argparse
@@ -73,26 +78,34 @@ class Server(socketserver.ThreadingMixIn, http.server.HTTPServer):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--port", type=int, default=8080)
+    ap.add_argument("--host", default="127.0.0.1",
+                    help="address to listen on (default: this computer only; "
+                         "use 0.0.0.0 inside a container)")
     ap.add_argument("--no-browser", action="store_true", help="don't open a browser window")
     ap.add_argument("--verbose", action="store_true", help="log every request")
     args = ap.parse_args()
     Handler.verbose = args.verbose
 
+    # Inside a container the port is fixed by the port mapping, so don't
+    # wander to another one.
+    ports = range(args.port, args.port + 20) if args.host == "127.0.0.1" else [args.port]
     httpd = None
-    for port in range(args.port, args.port + 20):
+    for port in ports:
         try:
-            httpd = Server(("127.0.0.1", port), Handler)
+            httpd = Server((args.host, port), Handler)
             break
         except OSError:
             continue
     if httpd is None:
-        sys.exit(f"No free port found between {args.port} and {args.port + 19}.")
+        sys.exit(f"No free port found starting at {args.port}.")
 
+    # webR needs a "secure context", which plain http only gets on localhost.
     url = f"http://localhost:{port}/"
     offline = os.path.exists(os.path.join(ROOT, "vendor", "webr", "webr.mjs"))
-    print(f"R Code Quest is running at {url}")
+    print(f"R Code Quest is running at {url}", flush=True)
     print("webR: " + ("local copy (works offline)" if offline
-                      else "not downloaded - will use the online CDN. Run 'python setup_offline.py' for offline play."))
+                      else "not downloaded - will use the online CDN. Run 'uv run setup_offline.py' for offline play."),
+          flush=True)
     print("Press Ctrl+C to stop.")
     if not args.no_browser:
         threading.Timer(0.5, lambda: webbrowser.open(url)).start()
